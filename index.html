@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            height: 400px;
+            overflow-y: scroll;
+        }
+
+        .user-message {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .bot-message {
+            background-color: #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chat-container">
+
+    </div>
+    <br>
+    <input type="text" id="user-message" placeholder="Type your message here..." onkeydown="if (event.key === 'Enter') { sendMessage(); }">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-message');
+
+        // Replace with your actual Gemini API key
+        const apiKey = 'AIzaSyCOMMW56WDdQ2DIoQQjBlVHQ5wWf7QKaLU';
+
+        function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage) {
+                // Clear user input for next message
+                userInput.value = '';
+
+                // Create a user message element
+                const userMessageElement = document.createElement('div');
+                userMessageElement.classList.add('user-message');
+                userMessageElement.textContent = userMessage;
+                chatContainer.appendChild(userMessageElement);
+
+                // Call Gemini API to generate response
+                fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: userMessage }]
+                        }],
+                        generationConfig: {
+                            maxOutputTokens: 100
+                        }
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const botResponse = data.results[0].generatedText;
+
+                    // Create a bot message element
+                    const botMessageElement = document.createElement('div');
+                    botMessageElement.classList.add('bot-message');
+                    botMessageElement.textContent = botResponse;
+                    chatContainer.appendChild(botMessageElement);
+
+                    // Scroll to the bottom of the chat container
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Error fetching response:', error);
+                    alert('There was an error generating a response. Please try again later.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
